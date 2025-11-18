@@ -1,32 +1,21 @@
+
 import streamlit as st
-import pandas as pd
-from sklearn.ensemble import RandomForestRegressor
+import joblib
+import numpy as np
 
-@st.cache_resource
-def load_and_train():
-    df = pd.read_csv("irrigation_dataset_100.csv")
-    df.columns = df.columns.str.strip()
-    df = df.apply(pd.to_numeric, errors="coerce")
-    df = df.dropna()
-    if df.empty:
-        st.error("❌ ERROR: Dataset became empty after cleaning. Check your CSV.")
-        st.stop()
+st.title("Irrigation Recommendation System")
 
-    X = df.iloc[:, :-1]
-    y = df.iloc[:, -1]
-    model = RandomForestRegressor()
-    model.fit(X, y)
-    return model, X.columns.tolist()
+model = joblib.load("model.joblib")
+le = joblib.load("label_encoder.joblib")
 
-st.title("Irrigation Predictor")
-
-model, feature_names = load_and_train()
-
-inputs = []
-for f in feature_names:
-    val = st.number_input(f, value=0.0)
-    inputs.append(val)
+humidity = st.number_input("Humidity (%)", 0, 100, 50)
+soil = st.number_input("Soil Moisture (%)", 0, 100, 30)
+temp = st.number_input("Temperature (°C)", -10, 60, 25)
+rain = st.number_input("Rainfall Last 24h (mm)", 0, 500, 5)
+day = st.number_input("Day of Week (0-6)", 0, 6, 3)
 
 if st.button("Predict"):
-    pred = model.predict([inputs])[0]
-    st.success(f"Prediction: {pred}")
+    inp = np.array([[humidity, soil, temp, rain, day]])
+    pred = model.predict(inp)[0]
+    label = le.inverse_transform([pred])[0]
+    st.success(f"Recommended Action: **{label}**")
