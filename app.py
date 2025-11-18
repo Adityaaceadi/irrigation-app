@@ -1,32 +1,28 @@
-
 import streamlit as st
 import pandas as pd
-import joblib
-import sklearn
+from sklearn.ensemble import RandomForestClassifier
 
-st.title("Irrigation Recommendation System")
+st.title("Irrigation Recommendation System (Cloud Safe Version)")
 
-st.write("Using scikit-learn version:", sklearn.__version__)
+@st.cache_resource
+def load_and_train():
+    df = pd.read_csv("irrigation_dataset_100.csv")
+    X = df.iloc[:, :-1]
+    y = df.iloc[:, -1]
 
-def safe_load_model(path):
-    with open(path, "rb") as f:
-        return joblib.load(f, mmap_mode=None)
+    model = RandomForestClassifier(n_estimators=200, random_state=42)
+    model.fit(X, y)
+    return model, X.columns.tolist()
 
-model = safe_load_model("irrigation_model.joblib")
+model, feature_names = load_and_train()
 
-st.write("Enter sensor values:")
+st.subheader("Enter sensor values:")
 
-def user_input():
-    data = {}
-    data["humidity"] = st.number_input("humidity", value=0.0)
-    data["soil_moisture"] = st.number_input("soil_moisture", value=0.0)
-    data["temperature"] = st.number_input("temperature", value=0.0)
-    data["rainfall_last_24h"] = st.number_input("rainfall_last_24h", value=0.0)
-    data["day_of_week"] = st.number_input("day_of_week", value=0.0)
+data = {}
+for col in feature_names:
+    data[col] = st.number_input(col, value=0.0)
 
-    return pd.DataFrame([data])
-
-input_df = user_input()
+input_df = pd.DataFrame([data])
 
 if st.button("Predict"):
     pred = model.predict(input_df)[0]
