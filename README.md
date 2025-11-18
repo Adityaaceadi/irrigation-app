@@ -1,3 +1,2 @@
-# Irrigation Streamlit App
-
-This app recommends irrigation actions based on sensor data.
+# Irrigation Streamlit App (Fixed Version)
+Compatible with Streamlit Cloud.

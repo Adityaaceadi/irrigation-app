@@ -2,12 +2,19 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import sklearn
 
 st.title("Irrigation Recommendation System")
 
-model = joblib.load("irrigation_model.joblib")
+st.write("Using scikit-learn version:", sklearn.__version__)
 
-st.write("Enter sensor values to get irrigation recommendation:")
+def safe_load_model(path):
+    with open(path, "rb") as f:
+        return joblib.load(f, mmap_mode=None)
+
+model = safe_load_model("irrigation_model.joblib")
+
+st.write("Enter sensor values:")
 
 def user_input():
     data = {}
@@ -22,5 +29,5 @@ def user_input():
 input_df = user_input()
 
 if st.button("Predict"):
-    prediction = model.predict(input_df)[0]
-    st.success(f"Recommended action: {prediction}")
+    pred = model.predict(input_df)[0]
+    st.success(f"Recommended irrigation action: {pred}")
