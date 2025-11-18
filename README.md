@@ -1,2 +1,2 @@
-# Irrigation Streamlit App (Fixed Version)
-Compatible with Streamlit Cloud.
+# Irrigation App
+Upload your dataset and run streamlit.

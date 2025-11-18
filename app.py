@@ -1,29 +1,32 @@
 import streamlit as st
 import pandas as pd
-from sklearn.ensemble import RandomForestClassifier
-
-st.title("Irrigation Recommendation System (Cloud Safe Version)")
+from sklearn.ensemble import RandomForestRegressor
 
 @st.cache_resource
 def load_and_train():
     df = pd.read_csv("irrigation_dataset_100.csv")
+    df.columns = df.columns.str.strip()
+    df = df.apply(pd.to_numeric, errors="coerce")
+    df = df.dropna()
+    if df.empty:
+        st.error("❌ ERROR: Dataset became empty after cleaning. Check your CSV.")
+        st.stop()
+
     X = df.iloc[:, :-1]
     y = df.iloc[:, -1]
-
-    model = RandomForestClassifier(n_estimators=200, random_state=42)
+    model = RandomForestRegressor()
     model.fit(X, y)
     return model, X.columns.tolist()
 
+st.title("Irrigation Predictor")
+
 model, feature_names = load_and_train()
 
-st.subheader("Enter sensor values:")
-
-data = {}
-for col in feature_names:
-    data[col] = st.number_input(col, value=0.0)
-
-input_df = pd.DataFrame([data])
+inputs = []
+for f in feature_names:
+    val = st.number_input(f, value=0.0)
+    inputs.append(val)
 
 if st.button("Predict"):
-    pred = model.predict(input_df)[0]
-    st.success(f"Recommended irrigation action: {pred}")
+    pred = model.predict([inputs])[0]
+    st.success(f"Prediction: {pred}")
